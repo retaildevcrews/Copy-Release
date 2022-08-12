@@ -19073,7 +19073,7 @@ async function GetReleaseForTag() {
 
     ProcessRelease(tagRelease)
 
-    core.info('GetLatestRelease Done')
+    core.info('GetReleaseForTag Done')
 }
 
 //API: https://octokit.github.io/rest.js/v18#repos-get-latest-release
