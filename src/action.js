@@ -23,7 +23,9 @@ const
 var 
     releaseName = core.getInput('release_name', { required: false }).replace('refs/tags/', ''),
     body = core.getInput('body', { required: false }),
-    tag = tagName.replace('refs/tags/', '')
+    tag = tagName.replace('refs/tags/', ''),
+    draft = false,
+    prerelease = false,
     assetArray = []
 
 core.info(format('tag_name:%s, owner:%s, repo:%s', tagName, owner, repo))
@@ -89,14 +91,16 @@ async function GetLatestRelease() {
 
 async function ProcessRelease(release) {
     const {
-        data: { tag_name: t, name: n, body: b }
+        data: { tag_name: t, name: n, body: b, draft: d, prerelease: p}
     } = release
     releaseAsset = release.data.assets || ''
-    core.info(format('tag:%s, name:%s, body:%s', t, n, b))
+    core.info(format('tag:%s, name:%s, body:%s, draft:%s, prerelease:%s', t, n, b, d, p))
 
     tag = t
     releaseName = n
     body = b
+    draft = d
+    prerelease = p
 }
 
 async function DownloadAssets() {
