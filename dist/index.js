@@ -19096,7 +19096,7 @@ async function ProcessRelease(release) {
         data: { tag_name: t, name: n, body: b }
     } = release
     releaseAsset = release.data.assets || ''
-    core.info(format('tag:%s, name:%s, body:%s', latestTag, latestName, latestBody))
+    core.info(format('tag:%s, name:%s, body:%s', t, n, b))
 
     tag = t
     releaseName = n
@@ -19142,7 +19142,7 @@ async function CreateRelease() {
         repo,
         tag_name: tag,
         name: releaseName,
-        body: bodyFileContent || body,
+        body: body,
         draft,
         prerelease
     }).catch(err => {
