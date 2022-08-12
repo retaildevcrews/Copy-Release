@@ -1,30 +1,10 @@
-name: 'Release & Assets'
-description: 'Create a release, upload release assets, and copy a release to other repository'
-author: 'Hs1r1us'
+name: 'Copy Release'
+description: 'Copy a release to another repository'
+author: 'DanMass'
 inputs:
   tag_name:
     description: 'The name of the tag'
     required: true
-  release_name:
-    description: 'The name of the release'
-    required: false
-  body:
-    description: 'Text describing the contents of the tag'
-    required: false
-  body_path:
-    description: 'Path to file with information about the tag'
-    required: false
-  asset_files:
-    description: 'The path to the asset you want to upload'
-    required: false
-  draft:
-    description: '`true` to create a draft (unpublished) release, `false` to create a published one. Default: `false`'
-    required: false
-    default: false
-  prerelease:
-    description: '`true` to identify the release as a prerelease. `false` to identify the release as a full release. Default: `false`'
-    required: false
-    default: false
   repo:
     description: 'Repository on which to release.  Used only if you want to create the release on another repo'
     required: false

@@ -1,5 +1,8 @@
-# Release-AIO
-Create a release, upload release assets, and duplicate a release to other repository.
+# Copy-Release
+
+Copy a release to another repository.
+
+Forked from [Release-AIO](https://github.com/Hs1r1us/Release-AIO) under the MIT [license](LICENCSE) to provide more control over copying, building dist as in [this spacejelly tutorial](https://spacejelly.dev/posts/how-to-create-a-custom-github-action-with-node-javascript/).
 
 Reference from [`@actions/create-release`](https://github.com/marketplace/actions/create-a-release) [`@actions/upload-release-asset`](https://github.com/marketplace/actions/upload-a-release-asset)
 
@@ -13,19 +16,7 @@ Reference from [`@actions/create-release`](https://github.com/marketplace/action
 
 ### Inputs
 
-  - `tag_name`: The name of the tag for this release
-
-#### Optional:
-
-|  Parameter   |                                         Description                                          |      Default       |
-| :----------: | :------------------------------------------------------------------------------------------: | :----------------: |
-| release_name |                                   The name of the release                                    |        null        |
-|     body     |                           Text describing the contents of the tag                            |        null        |
-|  body_path   |                         Path to file with information about the tag                          |        null        |
-| asset_files  |                           The path to the asset you want to upload                           |        null        |
-|    draft     |                             Create a draft (unpublished) release                             |      `false`       |
-|  prerelease  |                             Identify the release as a prerelease                             |      `false`       |
-|     repo     | Repository on which to release.  Used only if you want to create the release on another repo | CurrOwner/CurrRepo |
+- `tag_name`: The name of the tag for the release to copy
 
 ### Outputs
 
@@ -33,40 +24,36 @@ Reference from [`@actions/create-release`](https://github.com/marketplace/action
 - `html_url`: The URL users can navigate to in order to view the release
 - `upload_url`: The URL for uploading assets to the release
 
-### Example
+## Examples
 
-- Create release and upload assets
-  
-  - `asset_files`: Support file or directory, ***Upload files with depth 1 in the directory when using the directory***
-```
-- name: Create Release With Asset
-  id: Release-AIO
-  uses: Hs1r1us/Release-AIO@v1
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    tag_name: ${{ github.ref }}
-    asset_files: './asset_file'
-```
-- Duplicate the latest Release of the current Repository to the target Repository
+### Copy a Specific Release to Another Repo
+
+- Copy a specific Release of the current Repository to the target Repository
   - private_Repo => public_Repo
   - Use in private_Repo
   - [A new token](https://github.com/settings/tokens/new?scopes=repo) to access the target Repository
 ```
-- name: Duplicate Release With Asset to public_Repo
-  id: Release-AIO
-  uses: Hs1r1us/Release-AIO@v1
+```
+- name: Copy Release to some-repo
+  id: Copy-Release
+  uses: DanMass/Copy-Relesae@v1.0
   env:
     GITHUB_TOKEN: ${{ secrets.PRIVATE_TOKEN }} # You need a new token to access the target Repository
   with:
-    tag_name: 'inherit' # Must use 'inherit' to get the latest release
-    body: 'hello world' # Will be added in the new release
-    repo: 'Hs1r1us/public_Repo' # The format is like owner/repo
-    asset_files: './asset_file' # Will be added in the new release
+    tag_name: 'v1.3.2'
 ```
-## TODO
 
-- [x] Create a release
-- [x] Upload release assets
-- [x] Duplicate a release
-- [ ] Support archive assets
+### Copy the Latest Release to Another Repo
+
+- Copy the latest Release of the current Repository to the target Repository
+  - private_Repo => public_Repo
+  - Use in private_Repo
+  - [A new token](https://github.com/settings/tokens/new?scopes=repo) to access the target Repository
+```
+```
+- name: Copy Release to some-repo
+  id: Copy-Release
+  uses: DanMass/Copy-Relesae@v1.0
+  env:
+    GITHUB_TOKEN: ${{ secrets.PRIVATE_TOKEN }} # You need a new token to access the target Repository
+```
