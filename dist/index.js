@@ -19028,7 +19028,7 @@ var
     releaseName = core.getInput('release_name', { required: false }).replace('refs/tags/', ''),
     body = core.getInput('body', { required: false }),
     tag = tagName.replace('refs/tags/', '')
-    assetArray = [], bodyFileContent, releaseAsset, uploadUrl
+    assetArray = []
 
 core.info(format('tag_name:%s, owner:%s, repo:%s', tagName, owner, repo))
 
