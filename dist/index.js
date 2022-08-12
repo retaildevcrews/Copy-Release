@@ -19095,7 +19095,7 @@ async function GetLatestRelease() {
 
 async function ProcessRelease(release) {
     const {
-        data: { tag_name: t, name: n, body: b, draft: d, prerelease: p}
+        data: { tag_name: t, name: n, body: b, draft: d, prerelease: p }
     } = release
     releaseAsset = release.data.assets || ''
     core.info(format('tag:%s, name:%s, body:%s, draft:%s, prerelease:%s', t, n, b, d, p))
