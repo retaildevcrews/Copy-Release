@@ -4,29 +4,34 @@
     "@actions/github": "^4.0.0",
     "@actions/io": "^1.0.2",
     "got": "^11.8.1",
-    "mime": "^2.4.7"
+    "mime": "^2.4.7",
+    "ncc": "^0.3.6",
+    "yarn": "^1.22.19"
   },
-  "name": "release-aio",
-  "description": "Create a release, upload release assets, and copy a release to other repository.",
+  "name": "copy-release",
+  "description": "Copy a release to another repository.",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
+    "build": "ncc build src/action.js -o dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Hs1r1us/Release-AIO.git"
+    "url": "git+https://github.com/DanMass/Copy-Release.git"
   },
   "keywords": [
     "github",
     "release",
     "asset"
   ],
-  "author": "Hs1r1us",
+  "author": "DanMass",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Hs1r1us/Release-AIO/issues"
+    "url": "https://github.com/DanMass/Copy-Release/issues"
   },
-  "homepage": "https://github.com/Hs1r1us/Release-AIO#readme"
+  "homepage": "https://github.com/DanMass/Copy-Release#readme",
+  "devDependencies": {
+    "@vercel/ncc": "^0.34.0"
+  }
 }

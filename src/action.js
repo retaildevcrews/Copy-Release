@@ -10,58 +10,43 @@ const got = require('got')
 //https://github.com/broofa/mime
 const { getType } = require('mime')
 
-const tagName = core.getInput('tag_name', { required: true }),
-    bodyPath = core.getInput('body_path', { required: false }),
-    assetFile = core.getInput('asset_files', { require: false }),
-    draft = core.getInput('draft', { required: false }) === 'true',
-    prerelease = core.getInput('prerelease', { required: false }) === 'true',
+const 
+    tagName = core.getInput('tag_name', { required: false }),
     githubToken = process.env.GITHUB_TOKEN,
     octokit = GitHub.getOctokit(githubToken),
     context = GitHub.context,
     { owner: currentOwner, repo: currentRepo } = context.repo,
-    getRepo = core.getInput('repo', { required: false }) || currentOwner + "/" + currentRepo
-var releaseName = core.getInput('release_name', { required: false }).replace('refs/tags/', ''),
-    body = core.getInput('body', { required: false }),
-    tag = tagName.replace('refs/tags/', '')
-const
+    getRepo = core.getInput('repo', { required: false }) || currentOwner + "/" + currentRepo,
     owner = getRepo.match(/^[\s\w]+(?=\/)/g)[0],
     repo = getRepo.match(/[^\/][\d\w-]+$/g)[0]
 
-var assetArray = [],
-    bodyFileContent,
-    latestAsset,
-    uploadUrl
+var 
+    releaseName = core.getInput('release_name', { required: false }).replace('refs/tags/', ''),
+    body = core.getInput('body', { required: false }),
+    tag = tagName.replace('refs/tags/', ''),
+    draft = false,
+    prerelease = false,
+    assetArray = []
 
-core.info(
-    format('tag_name:%s,release_name:%s,body:%s,body_path:%s,asset_files:%s,draft:%s,prerelease:%s,owner:%s,repo:%s',
-        tag, releaseName, body, bodyPath, assetFile, draft, prerelease, owner, repo))
+core.info(format('tag_name:%s, owner:%s, repo:%s', tagName, owner, repo))
 
 Main()
 
 async function Main() {
     try {
 
-        var LatestPromise
-        if (tag == 'inherit' && currentRepo != repo) {
-            LatestPromise = GetLatest()//update body releaseName
+        var ReleasePromise
+        if (tag == '') {
+            ReleasePromise = GetLatestRelease() // tag, releaseName, body
+        } else {
+            ReleasePromise = GetReleaseForTag() // tag, releaseName, body
         }
 
-        if (bodyPath !== '' && !!bodyPath) {
-            let bodyStr = fs.readFileSync(bodyPath, { encoding: 'utf8' })
-            core.info(bodyStr)
-            bodyFileContent = (body ? body + '\n' : '') + bodyStr
-        }
+        await Promise.all([ReleasePromise])
+        var DownloadPromise = DownloadAssets() // assetArray
+        var CreatePromise = CreateRelease() // uploadUrl
 
-        await Promise.all([LatestPromise])
-        var DownloadPromise = DownloadAssets()//assetArray
-        var CreatePromise = CreateRelease()//uploadUrl
-
-        var DecodePromise
-        if (assetFile != '' && !!assetFile) {
-            DecodePromise = DecodeAssetFile()//assetArray
-        }
-
-        await Promise.all([DownloadPromise, CreatePromise, DecodePromise])
+        await Promise.all([DownloadPromise, CreatePromise])
             .then(() => UploadAssets())
 
     } catch (error) {
@@ -69,9 +54,27 @@ async function Main() {
     }
 }
 
+//API: ttps://octokit.github.io/rest.js/v18#repos-get-release-by-tag
+async function GetReleaseForTag() {
+    core.info('GetReleaseForTag Start')
+    let tagRelease = null
+    tagRelease = await octokit.repos.getReleaseByTag({
+        owner: currentOwner,
+        repo: currentRepo,
+        tag: tag
+    }).catch(err => {
+        core.setFailed(err)
+        throw new Error(err)
+    })
+
+    ProcessRelease(tagRelease)
+
+    core.info('GetReleaseForTag Done')
+}
+
 //API: https://octokit.github.io/rest.js/v18#repos-get-latest-release
-async function GetLatest() {
-    core.info('GetLatest Start')
+async function GetLatestRelease() {
+    core.info('GetLatestRelease Start')
     let latestRelease = null
     latestRelease = await octokit.repos.getLatestRelease({
         owner: currentOwner,
@@ -81,35 +84,35 @@ async function GetLatest() {
         throw new Error(err)
     })
 
-    const {
-        data: { tag_name: latestTag, name: latestName, body: latestBody }
-    } = latestRelease
-    latestAsset = latestRelease.data.assets || ''
-    core.info(
-        format('latest_tag:%s,latest_name:%s,latest_body:%s', latestTag, latestName, latestBody))
+    ProcessRelease(latestRelease)
 
-    tag = latestTag
-    if (body != '') {
-        body += latestBody != '' ? "\n" + latestBody : ''
-    } else {
-        body = latestBody
-    }
-    if (releaseName != '') {
-        releaseName += latestName != '' ? " " + latestName : ''
-    }
-    core.info('GetLatest Done')
+    core.info('GetLatestRelease Done')
+}
+
+async function ProcessRelease(release) {
+    const {
+        data: { tag_name: t, name: n, body: b, draft: d, prerelease: p }
+    } = release
+    releaseAsset = release.data.assets || ''
+    core.info(format('tag:%s, name:%s, body:%s, draft:%s, prerelease:%s', t, n, b, d, p))
+
+    tag = t
+    releaseName = n
+    body = b
+    draft = d
+    prerelease = p
 }
 
 async function DownloadAssets() {
     core.info('DownloadAssets Start')
     let assetDirPath = path.join('.', 'asset_files')
     await io.mkdirP(assetDirPath).catch(err => core.setFailed(err))
-    for (var i in latestAsset) {
-        core.info('Download ' + latestAsset[i].name)
+    for (var i in releaseAsset) {
+        core.info('Download ' + releaseAsset[i].name)
 
-        let filePath = path.join(assetDirPath, latestAsset[i].name)
+        let filePath = path.join(assetDirPath, releaseAsset[i].name)
         const gotOptions = {
-            url: latestAsset[i].url,
+            url: releaseAsset[i].url,
             headers: {
                 Accept: 'application/octet-stream',
                 Authorization: 'token ' + githubToken
@@ -122,8 +125,8 @@ async function DownloadAssets() {
         let assetSize = fs.statSync(filePath).size
         core.info(
             format('%s file size:%s', path.basename(filePath), assetSize))
-        if (assetSize != latestAsset[i].size) {
-            let errorMsg = format('Download Error\n%s size %s => %s', latestAsset[i].name, latestAsset[i].size, assetSize)
+        if (assetSize != releaseAsset[i].size) {
+            let errorMsg = format('Download Error\n%s size %s => %s', releaseAsset[i].name, releaseAsset[i].size, assetSize)
             throw new Error(errorMsg)
         }
         assetArray.push(filePath)
@@ -139,7 +142,7 @@ async function CreateRelease() {
         repo,
         tag_name: tag,
         name: releaseName,
-        body: bodyFileContent || body,
+        body: body,
         draft,
         prerelease
     }).catch(err => {
