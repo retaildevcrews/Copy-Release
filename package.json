@@ -10,11 +10,10 @@
   },
   "name": "copy-release",
   "description": "Copy a release to another repository.",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "ncc build src/action.js -o dist",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "ncc build src/action.js -o dist"
   },
   "repository": {
     "type": "git",
