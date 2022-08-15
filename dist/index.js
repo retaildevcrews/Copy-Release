@@ -19015,27 +19015,29 @@ const got = __nccwpck_require__(3061)
 const { getType } = __nccwpck_require__(9994)
 
 const 
-    tagName = core.getInput('tag_name', { required: false }),
-    githubToken = process.env.GITHUB_TOKEN,
     octokit = GitHub.getOctokit(githubToken),
     context = GitHub.context,
     { owner: currentOwner, repo: currentRepo } = context.repo,
+    githubToken = process.env.GITHUB_TOKEN,
+    tagName = core.getInput('tag_name', { required: false }),
     getRepo = core.getInput('repo', { required: false }) || currentOwner + "/" + currentRepo,
     owner = getRepo.match(/^[\s\w]+(?=\/)/g)[0],
     repo = getRepo.match(/[^\/][\d\w-]+$/g)[0]
 
 var 
-    releaseName = core.getInput('release_name', { required: false }).replace('refs/tags/', ''),
-    body = core.getInput('body', { required: false }),
     tag = tagName.replace('refs/tags/', ''),
+    releaseName = '',
+    body = '',
     draft = false,
     prerelease = false,
     assetArray = []
 
-core.info(format('tag_name:%s, owner:%s, repo:%s', tagName, owner, repo))
+core.info(format('tag_name: %s, owner: %s, repo: %s', tagName, owner, repo))
 
 Main()
 
+// Gets either the Release associated with the specified tag or the latest
+// Release if no tag is specified and copies it with assets to the other repo.
 async function Main() {
     try {
 
@@ -19058,9 +19060,13 @@ async function Main() {
     }
 }
 
-//API: ttps://octokit.github.io/rest.js/v18#repos-get-release-by-tag
+// Gets the Release for tag. The action will fail if the tag is not
+// found or if there is some other error getting the Release.
+//
+// GitHub API: https://octokit.github.io/rest.js/v18#repos-get-release-by-tag
 async function GetReleaseForTag() {
     core.info('GetReleaseForTag Start')
+
     let tagRelease = null
     tagRelease = await octokit.repos.getReleaseByTag({
         owner: currentOwner,
@@ -19076,9 +19082,12 @@ async function GetReleaseForTag() {
     core.info('GetReleaseForTag Done')
 }
 
-//API: https://octokit.github.io/rest.js/v18#repos-get-latest-release
+// Gets the Release from the current repo that is marked as Latest.
+//
+// GitHub API: https://octokit.github.io/rest.js/v18#repos-get-latest-release
 async function GetLatestRelease() {
     core.info('GetLatestRelease Start')
+
     let latestRelease = null
     latestRelease = await octokit.repos.getLatestRelease({
         owner: currentOwner,
@@ -19093,12 +19102,14 @@ async function GetLatestRelease() {
     core.info('GetLatestRelease Done')
 }
 
+// Destructures the Release payload and assigns the values to vars for use
+// in copying the Release and its assets.
 async function ProcessRelease(release) {
     const {
         data: { tag_name: t, name: n, body: b, draft: d, prerelease: p }
     } = release
     releaseAsset = release.data.assets || ''
-    core.info(format('tag:%s, name:%s, body:%s, draft:%s, prerelease:%s', t, n, b, d, p))
+    core.info(format('tag: %s, name: %s, body: %s, draft: %s, prerelease: %s', t, n, b, d, p))
 
     tag = t
     releaseName = n
@@ -19107,8 +19118,11 @@ async function ProcessRelease(release) {
     prerelease = p
 }
 
+// Downloads all of the assets associated with the Release to
+// an asset_files directory.
 async function DownloadAssets() {
     core.info('DownloadAssets Start')
+
     let assetDirPath = path.join('.', 'asset_files')
     await io.mkdirP(assetDirPath).catch(err => core.setFailed(err))
     for (var i in releaseAsset) {
@@ -19135,12 +19149,18 @@ async function DownloadAssets() {
         }
         assetArray.push(filePath)
     }
+
     core.info('DownloadAssets Done')
 }
 
-//API: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
+// Creates the Release on the target repo, adding the Release information to the
+// workflow context so that subsequent actions can take actions like uploading
+// additional assets.
+//
+// GitHub API: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
 async function CreateRelease() {
     core.info('CreateRealease Start')
+
     let createReleaseResponse = await octokit.repos.createRelease({
         owner,
         repo,
@@ -19165,39 +19185,12 @@ async function CreateRelease() {
     core.info('CreateRelease Done')
 }
 
-async function DecodeAssetFile() {
-    core.info('DecodeAssetFile Start')
-    let dir
-    try {
-        dir = fs.readdirSync(assetFile)
-    } catch (err) {
-        core.debug(err)
-        switch (err.code) {
-            case 'ENOENT':
-                core.info(assetFile + ' not exists')
-                break
-            case 'ENOTDIR':
-                core.info(assetFile + ' exists')
-                assetArray.push(assetFile)
-                break
-            default:
-                core.error(err)
-                break
-        }
-    }
-    if (dir) {
-        dir.forEach((val) => {
-            let subFile = path.join(assetFile, val)
-            if (!fs.statSync(subFile).isDirectory())
-                assetArray.push(subFile)
-        })
-    }
-    core.info('DecodeAssetFile Done')
-}
-
-//API: https://octokit.github.io/rest.js/v16#repos-upload-release-asset
+// Uploads the assets to the Release copy.
+//
+// GitHub API: https://octokit.github.io/rest.js/v16#repos-upload-release-asset
 async function UploadAssets() {
     core.info('UploadAssets Start')
+
     for (var i in assetArray) {
         core.info('Upload ' + path.basename(assetArray[i]))
 
@@ -19210,7 +19203,7 @@ async function UploadAssets() {
         }
 
         core.debug(
-            format('content-type:%s,\ncontent-length:%s,\nupload_url:%s,\nfile_path:%s',
+            format('content-type: %s,\ncontent-length: %s,\nupload_url: %s,\nfile_path: %s',
                 fileMime, headers['content-length'], uploadUrl, assetArray[i])
         )
 
@@ -19229,8 +19222,10 @@ async function UploadAssets() {
             format('%s url:%s', path.basename(assetArray[i]), browserDownloadUrl)
         )
     }
+
     core.info('UploadAssets Done')
 }
+
 })();
 
 module.exports = __webpack_exports__;
