@@ -43,6 +43,7 @@ Copy-Release builds dist as in [this spacejelly tutorial](https://spacejelly.dev
     GITHUB_TOKEN: ${{ secrets.PRIVATE_TOKEN }} # You need a new token to access the target Repository
   with:
     tag_name: 'v1.3.2'
+    repo: 'AnOrg/public-repo'
 ```
 
 ### Copy the Latest Release to Another Repo
@@ -58,4 +59,6 @@ Copy-Release builds dist as in [this spacejelly tutorial](https://spacejelly.dev
   uses: DanMass/Copy-Relesae@v1.0
   env:
     GITHUB_TOKEN: ${{ secrets.PRIVATE_TOKEN }} # You need a new token to access the target Repository
+  with:
+    repo: 'AnOrg/public-repo'
 ```
