@@ -11,10 +11,10 @@ const got = require('got')
 const { getType } = require('mime')
 
 const 
+    githubToken = process.env.GITHUB_TOKEN,
     octokit = GitHub.getOctokit(githubToken),
     context = GitHub.context,
     { owner: currentOwner, repo: currentRepo } = context.repo,
-    githubToken = process.env.GITHUB_TOKEN,
     tagName = core.getInput('tag_name', { required: false }),
     getRepo = core.getInput('repo', { required: false }) || currentOwner + "/" + currentRepo,
     owner = getRepo.match(/^[\s\w]+(?=\/)/g)[0],
