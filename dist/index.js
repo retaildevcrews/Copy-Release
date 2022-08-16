@@ -19108,7 +19108,7 @@ async function ProcessRelease(release) {
     const {
         data: { tag_name: t, name: n, body: b, draft: d, prerelease: p }
     } = release
-    releaseAsset = release.data.assets || ''
+    releaseAsset = release.data.assets || '' // if assets don't exist, initialize to empty
     core.info(format('tag: %s, name: %s, body: %s, draft: %s, prerelease: %s', t, n, b, d, p))
 
     tag = t
