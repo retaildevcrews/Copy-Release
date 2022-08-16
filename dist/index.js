@@ -19125,12 +19125,12 @@ async function DownloadAssets() {
 
     let assetDirPath = path.join('.', 'asset_files')
     await io.mkdirP(assetDirPath).catch(err => core.setFailed(err))
-    for (var i in releaseAsset) {
-        core.info('Download ' + releaseAsset[i].name)
+    for (const asset of releaseAsset) {
+        core.info('Download ' + asset.name)
 
-        let filePath = path.join(assetDirPath, releaseAsset[i].name)
+        let filePath = path.join(assetDirPath, asset.name)
         const gotOptions = {
-            url: releaseAsset[i].url,
+            url: asset.url,
             headers: {
                 Accept: 'application/octet-stream',
                 Authorization: 'token ' + githubToken
@@ -19143,8 +19143,8 @@ async function DownloadAssets() {
         let assetSize = fs.statSync(filePath).size
         core.info(
             format('%s file size:%s', path.basename(filePath), assetSize))
-        if (assetSize != releaseAsset[i].size) {
-            let errorMsg = format('Download Error\n%s size %s => %s', releaseAsset[i].name, releaseAsset[i].size, assetSize)
+        if (assetSize != asset.size) {
+            let errorMsg = format('Download Error\n%s size %s => %s', asset.name, asset.size, assetSize)
             throw new Error(errorMsg)
         }
         assetArray.push(filePath)
@@ -19191,27 +19191,27 @@ async function CreateRelease() {
 async function UploadAssets() {
     core.info('UploadAssets Start')
 
-    for (var i in assetArray) {
-        core.info('Upload ' + path.basename(assetArray[i]))
+    for (const asset of assetArray) {
+        core.info('Upload ' + path.basename(asset))
 
-        let fileMime = getType(assetArray[i]) || 'application/octet-stream'
+        let fileMime = getType(asset) || 'application/octet-stream'
         let charset = fileMime.indexOf('text') > -1 ? 'utf-8' : null
 
         let headers = {
             'content-type': fileMime,
-            'content-length': fs.statSync(assetArray[i]).size
+            'content-length': fs.statSync(asset).size
         }
 
         core.debug(
             format('content-type: %s,\ncontent-length: %s,\nupload_url: %s,\nfile_path: %s',
-                fileMime, headers['content-length'], uploadUrl, assetArray[i])
+                fileMime, headers['content-length'], uploadUrl, asset)
         )
 
         let uploadAssetResponse = await octokit.repos.uploadReleaseAsset({
             url: uploadUrl,
             headers,
-            name: path.basename(assetArray[i]),
-            data: fs.readFileSync(assetArray[i], charset)
+            name: path.basename(asset),
+            data: fs.readFileSync(asset, charset)
         })
 
         let {
@@ -19219,7 +19219,7 @@ async function UploadAssets() {
         } = uploadAssetResponse;
 
         core.info(
-            format('%s url:%s', path.basename(assetArray[i]), browserDownloadUrl)
+            format('%s url:%s', path.basename(asset), browserDownloadUrl)
         )
     }
 
