@@ -3,10 +3,10 @@ description: 'Copy a release to another repository'
 author: 'DanMass'
 inputs:
   tag_name:
-    description: 'The name of the tag'
+    description: 'Name of the tag associated with the Release to copy. If a tag is not provided, copy the latest Release.'
     required: true
   repo:
-    description: 'Repository on which to release.  Used only if you want to create the release on another repo'
+    description: 'Repository to which to copy the Release'
     required: false
 outputs:
   id:

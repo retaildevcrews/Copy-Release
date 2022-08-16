@@ -2,9 +2,11 @@
 
 Copy a release to another repository.
 
-Forked from [Release-AIO](https://github.com/Hs1r1us/Release-AIO) under the MIT [license](LICENCSE) to provide more control over copying, building dist as in [this spacejelly tutorial](https://spacejelly.dev/posts/how-to-create-a-custom-github-action-with-node-javascript/).
+Forked from [Release-AIO](https://github.com/Hs1r1us/Release-AIO) under the MIT [license](LICENCSE) to provide more control over copying a specific release.
 
-Reference from [`@actions/create-release`](https://github.com/marketplace/actions/create-a-release) [`@actions/upload-release-asset`](https://github.com/marketplace/actions/upload-a-release-asset)
+The original `Release-AIO` action referenced [`@actions/create-release`](https://github.com/marketplace/actions/create-a-release) [`@actions/upload-release-asset`](https://github.com/marketplace/actions/upload-a-release-asset).
+
+Copy-Release builds dist as in [this spacejelly tutorial](https://spacejelly.dev/posts/how-to-create-a-custom-github-action-with-node-javascript/).
 
 ------------
 
@@ -32,8 +34,8 @@ Reference from [`@actions/create-release`](https://github.com/marketplace/action
   - private_Repo => public_Repo
   - Use in private_Repo
   - [A new token](https://github.com/settings/tokens/new?scopes=repo) to access the target Repository
-```
-```
+
+```yaml
 - name: Copy Release to some-repo
   id: Copy-Release
   uses: DanMass/Copy-Relesae@v1.0
@@ -41,6 +43,7 @@ Reference from [`@actions/create-release`](https://github.com/marketplace/action
     GITHUB_TOKEN: ${{ secrets.PRIVATE_TOKEN }} # You need a new token to access the target Repository
   with:
     tag_name: 'v1.3.2'
+    repo: 'AnOrg/public-repo'
 ```
 
 ### Copy the Latest Release to Another Repo
@@ -49,11 +52,13 @@ Reference from [`@actions/create-release`](https://github.com/marketplace/action
   - private_Repo => public_Repo
   - Use in private_Repo
   - [A new token](https://github.com/settings/tokens/new?scopes=repo) to access the target Repository
-```
-```
+
+```yaml
 - name: Copy Release to some-repo
   id: Copy-Release
   uses: DanMass/Copy-Relesae@v1.0
   env:
     GITHUB_TOKEN: ${{ secrets.PRIVATE_TOKEN }} # You need a new token to access the target Repository
+  with:
+    repo: 'AnOrg/public-repo'
 ```
