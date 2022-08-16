@@ -26,6 +26,7 @@ var
     body = '',
     draft = false,
     prerelease = false,
+    releaseAssets = '',
     assetArray = []
 
 core.info(format('tag_name: %s, owner: %s, repo: %s', tagName, owner, repo))
@@ -104,7 +105,7 @@ async function ProcessRelease(release) {
     const {
         data: { tag_name: t, name: n, body: b, draft: d, prerelease: p }
     } = release
-    releaseAsset = release.data.assets || '' // if assets don't exist, initialize to empty
+    releaseAssets = release.data.assets || '' // if assets don't exist, initialize to empty
     core.info(format('tag: %s, name: %s, body: %s, draft: %s, prerelease: %s', t, n, b, d, p))
 
     tag = t
@@ -121,7 +122,7 @@ async function DownloadAssets() {
 
     let assetDirPath = path.join('.', 'asset_files')
     await io.mkdirP(assetDirPath).catch(err => core.setFailed(err))
-    for (const asset of releaseAsset) {
+    for (const asset of releaseAssets) {
         core.info('Download ' + asset.name)
 
         let filePath = path.join(assetDirPath, asset.name)
