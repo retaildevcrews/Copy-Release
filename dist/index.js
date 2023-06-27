@@ -19021,7 +19021,7 @@ const
     { owner: currentOwner, repo: currentRepo } = context.repo,
     tagName = core.getInput('tag_name', { required: false }),
     getRepo = core.getInput('repo', { required: false }) || currentOwner + "/" + currentRepo,
-    owner = getRepo.match(/^[\s\w]+(?=\/)/g)[0],
+    owner = getRepo.match(/^[\s\w-]+(?=\/)/g)[0],
     repo = getRepo.match(/[^\/][\d\w-]+$/g)[0]
 
 var 
